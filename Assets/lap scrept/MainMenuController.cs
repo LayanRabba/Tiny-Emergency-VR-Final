@@ -5,9 +5,15 @@ public class MainMenuController : MonoBehaviour
     public GameObject mainMenuCanvas;
     public GameObject settingsPanel;
 
+    public GameObject pauseButton;
+    public GameObject resumeButton;
+
     public void StartGame()
     {
         mainMenuCanvas.SetActive(false);
+
+        pauseButton.SetActive(true);
+        resumeButton.SetActive(false);
     }
 
     public void OpenSettings()
