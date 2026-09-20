@@ -929,6 +929,8 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 36518981}
+  - component: {fileID: 36518982}
+  - component: {fileID: 36518983}
   m_Layer: 0
   m_Name: Clot
   m_TagString: Untagged
@@ -957,6 +959,41 @@ Transform:
   - {fileID: 1474438802}
   m_Father: {fileID: 1626970465}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &36518982
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 36518980}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 913894983623a0140be2231aa3cc0167, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ClotHealth
+  maxHealth: 100
+  winCanvas: {fileID: 228131857}
+--- !u!65 &36518983
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 36518980}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Size: {x: 1.3149567, y: 11.132284, z: 12.2775955}
+  m_Center: {x: 0.3824463, y: -3.5379534, z: -6.62714}
 --- !u!1 &52706521
 GameObject:
   m_ObjectHideFlags: 0
@@ -23803,6 +23840,37 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 400000, guid: a4440fa3f28dcae48b58c4a669d5b4f0, type: 3}
   m_PrefabInstance: {fileID: 1475697838}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &1480580757
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1480580758}
+  m_Layer: 0
+  m_Name: LaserOrigin
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1480580758
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1480580757}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0.667, z: 1.004}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 2024876408}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1001 &1482534669
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -30577,6 +30645,7 @@ GameObject:
   - component: {fileID: 1899432799}
   - component: {fileID: 1899432798}
   - component: {fileID: 1899432797}
+  - component: {fileID: 1899432800}
   m_Layer: 0
   m_Name: Main Camera
   m_TagString: MainCamera
@@ -30703,6 +30772,25 @@ Camera:
   m_OcclusionCulling: 1
   m_StereoConvergence: 10
   m_StereoSeparation: 0.022
+--- !u!114 &1899432800
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1899432795}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: cff8f732a8eeb2a44a2fd512fa80b38c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::LaserShooter
+  aimCamera: {fileID: 1899432799}
+  laserOrigin: {fileID: 1480580758}
+  vehicleRoot: {fileID: 2024876408}
+  range: 100
+  damagePerSecond: 25
+  laserColor: {r: 0, g: 1, b: 0, a: 1}
+  laserWidth: 0.02
 --- !u!1001 &1899812081
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -33204,6 +33292,7 @@ Transform:
   - {fileID: 1298924745}
   - {fileID: 1899432796}
   - {fileID: 459742381}
+  - {fileID: 1480580758}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 180, z: 0}
 --- !u!114 &2024876409
@@ -33293,6 +33382,7 @@ MonoBehaviour:
   whiteCellEnergy: 5
   damageCooldown: 1
   startProtectionDuration: 2
+  loseCanvas: {fileID: 618375575}
 --- !u!1001 &2027254720
 PrefabInstance:
   m_ObjectHideFlags: 0

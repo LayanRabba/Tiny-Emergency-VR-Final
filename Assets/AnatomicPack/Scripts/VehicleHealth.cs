@@ -24,6 +24,9 @@ public class VehicleHealth : MonoBehaviour
     [Tooltip("Protection time when the game starts.")]
     [SerializeField] private float startProtectionDuration = 2f;
 
+    [Header("Lose UI")]
+    public GameObject loseCanvas;
+
     private float nextDamageTime;
     private bool gameOver;
 
@@ -37,6 +40,11 @@ public class VehicleHealth : MonoBehaviour
         currentEnergy = maxEnergy;
         currentScore = 0;
         gameOver = false;
+
+        if (loseCanvas != null)
+        {
+            loseCanvas.SetActive(false);
+        }
     }
 
     private void Start()
@@ -94,7 +102,6 @@ public class VehicleHealth : MonoBehaviour
             $"Energy: {currentEnergy}/{maxEnergy}"
         );
 
-        // Remove the collected white cell from the scene.
         whiteCell.SetActive(false);
     }
 
@@ -131,6 +138,13 @@ public class VehicleHealth : MonoBehaviour
 
         gameOver = true;
 
+        // Show lose screen
+        if (loseCanvas != null)
+        {
+            loseCanvas.SetActive(true);
+        }
+
+        // Stop vehicle movement
         VehiclePathController movement =
             GetComponent<VehiclePathController>();
 
