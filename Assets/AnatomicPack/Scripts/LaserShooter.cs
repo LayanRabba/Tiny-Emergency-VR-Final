@@ -6,94 +6,82 @@ using UnityEngine.InputSystem;
 
 public class LaserShooter : MonoBehaviour
 {
-    [Header("Aim")]
-    [SerializeField] private Camera aimCamera;
-
-    [Header("Laser Origin")]
-    [SerializeField] private Transform laserOrigin;
-
-    [Header("Ignore")]
-    [SerializeField] private Transform vehicleRoot;
+    [Header("Laser Setup")]
+    public Camera aimCamera;
+    public Transform laserOrigin;
+    public Transform vehicleRoot;
 
     [Header("Laser Settings")]
-    [SerializeField] private float range = 100f;
+    public float range = 100f;
+    public Color laserColor = Color.green;
+    public float laserWidth = 0.02f;
 
-    [Header("Laser Appearance")]
-    [SerializeField] private Color laserColor = Color.green;
-    [SerializeField] private float laserWidth = 0.02f;
+    [Header("Laser Sound")]
+    public AudioSource laserAudio;
 
     private LineRenderer lineRenderer;
 
     private void Awake()
     {
-        if (aimCamera == null)
-            aimCamera = Camera.main;
-
-        lineRenderer = GetComponent<LineRenderer>();
+        // إنشاء Line Renderer لليزر
+        lineRenderer = gameObject.GetComponent<LineRenderer>();
 
         if (lineRenderer == null)
             lineRenderer = gameObject.AddComponent<LineRenderer>();
 
-        ConfigureLine();
-    }
-
-    private void ConfigureLine()
-    {
-        lineRenderer.useWorldSpace = true;
         lineRenderer.positionCount = 2;
-        lineRenderer.enabled = false;
-
         lineRenderer.startWidth = laserWidth;
         lineRenderer.endWidth = laserWidth;
 
         lineRenderer.startColor = laserColor;
         lineRenderer.endColor = laserColor;
 
-        Shader shader =
-            Shader.Find("Universal Render Pipeline/Unlit");
+        lineRenderer.material =
+            new Material(Shader.Find("Sprites/Default"));
 
-        if (shader == null)
-            shader = Shader.Find("Unlit/Color");
+        lineRenderer.enabled = false;
 
-        if (shader == null)
+        // تأكد إن الصوت مش شغال من البداية
+        if (laserAudio != null)
         {
-            Debug.LogError("Laser shader not found.");
-            return;
+            laserAudio.playOnAwake = false;
         }
-
-        Material material = new Material(shader);
-
-        material.color = laserColor;
-
-        if (material.HasProperty("_BaseColor"))
-            material.SetColor("_BaseColor", laserColor);
-
-        lineRenderer.material = material;
     }
 
     private void Update()
     {
-        if (aimCamera == null)
-            aimCamera = Camera.main;
-
         if (IsFireHeld())
         {
             FireLaser();
+
+            // شغّل صوت الليزر
+            if (laserAudio != null && !laserAudio.isPlaying)
+            {
+                laserAudio.Play();
+            }
         }
         else
         {
             lineRenderer.enabled = false;
+
+            // وقف الصوت لما نترك F
+            if (laserAudio != null && laserAudio.isPlaying)
+            {
+                laserAudio.Stop();
+            }
         }
     }
 
     private bool IsFireHeld()
     {
 #if ENABLE_INPUT_SYSTEM
-        return Keyboard.current != null &&
-               Keyboard.current.fKey.isPressed;
-#else
-        return Input.GetKey(KeyCode.F);
+        if (Keyboard.current != null)
+        {
+            return Keyboard.current.fKey.isPressed;
+        }
 #endif
+
+        return Input.GetKey(KeyCode.F);
     }
 
     private void FireLaser()
@@ -103,62 +91,52 @@ public class LaserShooter : MonoBehaviour
 
         lineRenderer.enabled = true;
 
-        Vector3 start = laserOrigin.position;
+        Vector3 startPoint = laserOrigin.position;
+        Vector3 direction = aimCamera.transform.forward;
 
-        Vector3 direction =
-            aimCamera.transform.forward;
+        Vector3 endPoint =
+            startPoint + direction * range;
 
-        Vector3 end =
-            start + direction * range;
-
+        // افحص كل الأشياء اللي الليزر لمسها
         RaycastHit[] hits =
             Physics.RaycastAll(
-                start,
+                startPoint,
                 direction,
-                range,
-                Physics.DefaultRaycastLayers,
-                QueryTriggerInteraction.Collide
+                range
             );
 
-        RaycastHit closestHit = default;
-
-        float closestDistance =
-            Mathf.Infinity;
-
+        RaycastHit closestHit = new RaycastHit();
         bool foundHit = false;
+        float closestDistance = Mathf.Infinity;
 
         foreach (RaycastHit hit in hits)
         {
-            Transform hitTransform =
-                hit.collider.transform;
-
-            // تجاهل المركبة وأجزائها
-            if (
-                vehicleRoot != null &&
-                (
-                    hitTransform == vehicleRoot ||
-                    hitTransform.IsChildOf(vehicleRoot)
-                )
-            )
+            // تجاهل أجزاء المركبة
+            if (vehicleRoot != null &&
+                hit.collider.transform.IsChildOf(vehicleRoot))
             {
                 continue;
             }
 
-            if (hit.distance < closestDistance)
+            float distance =
+                Vector3.Distance(
+                    startPoint,
+                    hit.point
+                );
+
+            if (distance < closestDistance)
             {
-                closestDistance =
-                    hit.distance;
-
+                closestDistance = distance;
                 closestHit = hit;
-
                 foundHit = true;
             }
         }
 
         if (foundHit)
         {
-            end = closestHit.point;
+            endPoint = closestHit.point;
 
+            // افحص إذا ضرب التجلط
             ClotHealth clot =
                 closestHit.collider
                 .GetComponentInParent<ClotHealth>();
@@ -169,14 +147,7 @@ public class LaserShooter : MonoBehaviour
             }
         }
 
-        lineRenderer.SetPosition(
-            0,
-            start
-        );
-
-        lineRenderer.SetPosition(
-            1,
-            end
-        );
+        lineRenderer.SetPosition(0, startPoint);
+        lineRenderer.SetPosition(1, endPoint);
     }
 }
