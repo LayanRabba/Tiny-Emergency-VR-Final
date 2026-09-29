@@ -12,7 +12,7 @@ public class VehicleHealth : MonoBehaviour
     [Header("Obstacle Damage")]
     [SerializeField] private float redBloodCellDamage = 5f;
     [SerializeField] private float plateletDamage = 2f;
-    [SerializeField] private float virusDamage = 20f;
+    
 
     [Header("White Cell Bonus")]
     [SerializeField] private int whiteCellScore = 10;
@@ -20,7 +20,8 @@ public class VehicleHealth : MonoBehaviour
 
     [Header("Collision Sounds")]
     [SerializeField] private AudioSource collisionAudioSource;
-    [SerializeField] private AudioClip redAndPlateletSound;
+    [SerializeField] private AudioClip redBloodCellSound;
+    [SerializeField] private AudioClip plateletSound;
     [SerializeField] private AudioClip whiteCellSound;
 
     [Header("Protection")]
@@ -68,33 +69,44 @@ public class VehicleHealth : MonoBehaviour
 
         string objectTag = other.gameObject.tag;
 
+        // White blood cells give a bonus and have their own sound.
         if (objectTag == "WhiteBloodCell")
         {
             CollectWhiteBloodCell(other.gameObject);
             return;
         }
 
+        // Prevent repeated damage and sounds during the protection period.
         if (Time.time < nextDamageTime)
             return;
 
         if (objectTag == "RedBloodCell")
         {
-            HitObstacle(redBloodCellDamage, "Red blood cell");
+            HitObstacle(
+                redBloodCellDamage,
+                "Red blood cell",
+                redBloodCellSound
+            );
         }
         else if (objectTag == "Platelet")
         {
-            HitObstacle(plateletDamage, "Platelet");
+            HitObstacle(
+                plateletDamage,
+                "Platelet",
+                plateletSound
+            );
         }
-        else if (objectTag == "Virus")
-        {
-            HitObstacle(virusDamage, "Virus");
-        }
+        
     }
 
-    private void HitObstacle(float damage, string obstacleName)
+    private void HitObstacle(
+        float damage,
+        string obstacleName,
+        AudioClip sound
+    )
     {
         nextDamageTime = Time.time + damageCooldown;
-        PlaySound(redAndPlateletSound);
+        PlaySound(sound);
         TakeDamage(damage, obstacleName);
     }
 
