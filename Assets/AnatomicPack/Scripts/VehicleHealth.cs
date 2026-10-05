@@ -10,12 +10,19 @@ public class VehicleHealth : MonoBehaviour
     [SerializeField] private int currentScore = 0;
 
     [Header("Obstacle Damage")]
-    [SerializeField] private float redBloodCellDamage = 10f;
-    [SerializeField] private float virusDamage = 20f;
+    [SerializeField] private float redBloodCellDamage = 5f;
+    [SerializeField] private float plateletDamage = 2f;
+    
 
     [Header("White Cell Bonus")]
     [SerializeField] private int whiteCellScore = 10;
     [SerializeField] private float whiteCellEnergy = 5f;
+
+    [Header("Collision Sounds")]
+    [SerializeField] private AudioSource collisionAudioSource;
+    [SerializeField] private AudioClip redBloodCellSound;
+    [SerializeField] private AudioClip plateletSound;
+    [SerializeField] private AudioClip whiteCellSound;
 
     [Header("Protection")]
     [Tooltip("Minimum time between damage events.")]
@@ -42,9 +49,7 @@ public class VehicleHealth : MonoBehaviour
         gameOver = false;
 
         if (loseCanvas != null)
-        {
             loseCanvas.SetActive(false);
-        }
     }
 
     private void Start()
@@ -64,37 +69,52 @@ public class VehicleHealth : MonoBehaviour
 
         string objectTag = other.gameObject.tag;
 
-        // White blood cells are bonus items.
+        // White blood cells give a bonus and have their own sound.
         if (objectTag == "WhiteBloodCell")
         {
             CollectWhiteBloodCell(other.gameObject);
             return;
         }
 
-        // Platelets are visual elements only and are ignored.
-        if (objectTag == "Platelet")
-            return;
-
-        // Prevent receiving many damage events at the same time.
+        // Prevent repeated damage and sounds during the protection period.
         if (Time.time < nextDamageTime)
             return;
 
         if (objectTag == "RedBloodCell")
         {
-            nextDamageTime = Time.time + damageCooldown;
-            TakeDamage(redBloodCellDamage, "Red blood cell");
+            HitObstacle(
+                redBloodCellDamage,
+                "Red blood cell",
+                redBloodCellSound
+            );
         }
-        else if (objectTag == "Virus")
+        else if (objectTag == "Platelet")
         {
-            nextDamageTime = Time.time + damageCooldown;
-            TakeDamage(virusDamage, "Virus");
+            HitObstacle(
+                plateletDamage,
+                "Platelet",
+                plateletSound
+            );
         }
+        
+    }
+
+    private void HitObstacle(
+        float damage,
+        string obstacleName,
+        AudioClip sound
+    )
+    {
+        nextDamageTime = Time.time + damageCooldown;
+        PlaySound(sound);
+        TakeDamage(damage, obstacleName);
     }
 
     private void CollectWhiteBloodCell(GameObject whiteCell)
     {
         currentScore += whiteCellScore;
         AddEnergy(whiteCellEnergy);
+        PlaySound(whiteCellSound);
 
         Debug.Log(
             $"White blood cell collected. " +
@@ -103,6 +123,12 @@ public class VehicleHealth : MonoBehaviour
         );
 
         whiteCell.SetActive(false);
+    }
+
+    private void PlaySound(AudioClip clip)
+    {
+        if (collisionAudioSource != null && clip != null)
+            collisionAudioSource.PlayOneShot(clip);
     }
 
     private void TakeDamage(float damage, string obstacleName)
@@ -115,9 +141,7 @@ public class VehicleHealth : MonoBehaviour
         );
 
         if (currentEnergy <= 0f)
-        {
             EndGame();
-        }
     }
 
     public void AddEnergy(float amount)
@@ -125,10 +149,7 @@ public class VehicleHealth : MonoBehaviour
         if (gameOver || amount <= 0f)
             return;
 
-        currentEnergy = Mathf.Min(
-            maxEnergy,
-            currentEnergy + amount
-        );
+        currentEnergy = Mathf.Min(maxEnergy, currentEnergy + amount);
     }
 
     private void EndGame()
@@ -138,23 +159,15 @@ public class VehicleHealth : MonoBehaviour
 
         gameOver = true;
 
-        // Show lose screen
         if (loseCanvas != null)
-        {
             loseCanvas.SetActive(true);
-        }
 
-        // Stop vehicle movement
         VehiclePathController movement =
             GetComponent<VehiclePathController>();
 
         if (movement != null)
-        {
             movement.enabled = false;
-        }
 
-        Debug.Log(
-            $"Game Over. Final Score: {currentScore}"
-        );
+        Debug.Log($"Game Over. Final Score: {currentScore}");
     }
 }

@@ -21,6 +21,9 @@ public class CapsuleDoorController : MonoBehaviour
     public string animationStateName = "Take 001";
     public float animationDuration = 1.5f;
 
+    [Header("Door Stability")]
+    public float zoneStabilityTime = 0.25f;
+
     [Header("Sound")]
     public AudioSource machineAudio;
 
@@ -32,18 +35,20 @@ public class CapsuleDoorController : MonoBehaviour
     // 1 = Open
     private float animationProgress = 0f;
 
-    // لمنع تكرار صوت الفتح/الإغلاق كل Frame
-    private bool previousShouldOpen = false;
+    // الحالة الحالية التي أمرنا الباب بها
+    private bool doorShouldBeOpen = false;
 
-    // حتى يبدأ الانتقال مرة واحدة فقط
+    // تستخدم لمنع الاهتزاز على حدود المناطق
+    private bool pendingState = false;
+    private float pendingTimer = 0f;
+
+    // حتى ننتقل للمشهد مرة واحدة فقط
     private bool transitionStarted = false;
 
     void Start()
     {
-        // نوقف التشغيل التلقائي للـ Animator
         capsuleAnimator.speed = 0f;
 
-        // تبدأ الكبسولة مغلقة
         animationProgress = 0f;
 
         capsuleAnimator.Play(
@@ -52,56 +57,47 @@ public class CapsuleDoorController : MonoBehaviour
             animationProgress
         );
 
-        // إظهار أول Frame
         capsuleAnimator.Update(0f);
 
-        // المدخل مسكر بالبداية
+        // الباب مغلق بالبداية
+        doorShouldBeOpen = false;
+        pendingState = false;
+
+        // الجدار الأمامي مغلق
         frontCollider.enabled = true;
 
-        // الحالة الابتدائية مغلقة
-        previousShouldOpen = false;
-
-        // نتأكد أن الصوت لا يبدأ وحده
         if (machineAudio != null)
         {
             machineAudio.Stop();
+            machineAudio.loop = false;
         }
     }
 
     void Update()
     {
-        // هل اللاعب قريب من الكبسولة؟
         bool playerNear = IsInsideZone(
             outerZone,
             player.position
         );
 
-        // هل اللاعب داخل الكبسولة؟
         bool playerInside = IsInsideZone(
             insideZone,
             player.position
         );
 
-        // تفتح فقط إذا كان اللاعب قريبًا ولكن ليس داخلها
-        bool shouldOpen = playerNear && !playerInside;
+        /*
+         * الباب:
+         *
+         * قريب وخارج الكبسولة = مفتوح
+         * داخل الكبسولة = مغلق
+         * بعيد عن الكبسولة = مغلق
+         */
+        bool desiredOpen = playerNear && !playerInside;
 
-        // إذا تغيرت حالة الكبسولة:
-        // مغلقة -> فتح
-        // أو مفتوحة -> إغلاق
-        if (shouldOpen != previousShouldOpen)
-        {
-            if (machineAudio != null)
-            {
-                machineAudio.Stop();
-                machineAudio.Play();
-            }
+        HandleDoorState(desiredOpen);
 
-            previousShouldOpen = shouldOpen;
-        }
-
-        // 1 = مفتوحة
-        // 0 = مغلقة
-        float targetProgress = shouldOpen ? 1f : 0f;
+        // تحريك الأنميشن
+        float targetProgress = doorShouldBeOpen ? 1f : 0f;
 
         animationProgress = Mathf.MoveTowards(
             animationProgress,
@@ -109,7 +105,6 @@ public class CapsuleDoorController : MonoBehaviour
             Time.deltaTime / animationDuration
         );
 
-        // نحرك الأنميشن يدويًا
         capsuleAnimator.Play(
             animationStateName,
             0,
@@ -118,12 +113,13 @@ public class CapsuleDoorController : MonoBehaviour
 
         capsuleAnimator.Update(0f);
 
-        // مفتوحة = يستطيع المرور
-        // مغلقة/تسكر = الجدار الأمامي يمنع المرور
-        frontCollider.enabled = !shouldOpen;
+        /*
+         * أثناء فتح الباب نسمح بالمرور.
+         * عند الدخول أو الابتعاد نعيد الجدار.
+         */
+        frontCollider.enabled = !doorShouldBeOpen;
 
-        // أول ما يدخل اللاعب داخل الكبسولة
-        // يبدأ عداد 5 ثواني مرة واحدة فقط
+        // عند الدخول للكبسولة يبدأ عداد الانتقال مرة واحدة
         if (playerInside && !transitionStarted)
         {
             transitionStarted = true;
@@ -131,17 +127,64 @@ public class CapsuleDoorController : MonoBehaviour
         }
     }
 
+    private void HandleDoorState(bool desiredOpen)
+    {
+        // إذا الحالة المطلوبة هي نفس الحالة الحالية، لا نفعل شيء
+        if (desiredOpen == doorShouldBeOpen)
+        {
+            pendingTimer = 0f;
+            pendingState = desiredOpen;
+            return;
+        }
+
+        /*
+         * إذا تغيرت الحالة المطلوبة،
+         * ننتظر قليلًا للتأكد أن اللاعب فعلًا دخل/خرج
+         * وليس فقط يهتز على حدود الـCollider.
+         */
+        if (pendingState != desiredOpen)
+        {
+            pendingState = desiredOpen;
+            pendingTimer = 0f;
+        }
+
+        pendingTimer += Time.deltaTime;
+
+        if (pendingTimer >= zoneStabilityTime)
+        {
+            SetDoorState(desiredOpen);
+            pendingTimer = 0f;
+        }
+    }
+
+    private void SetDoorState(bool open)
+    {
+        // إذا الحالة أصلًا نفسها، لا نشغل الصوت مرة ثانية
+        if (doorShouldBeOpen == open)
+            return;
+
+        doorShouldBeOpen = open;
+
+        // صوت واحد فقط عند الفتح أو الإغلاق
+        if (machineAudio != null)
+        {
+            machineAudio.Stop();
+            machineAudio.Play();
+        }
+    }
+
     IEnumerator LoadVeinScene()
     {
-        // ننتظر 5 ثواني
         yield return new WaitForSeconds(transitionDelay);
 
-        // ننتقل إلى مشهد الوريد
         SceneManager.LoadScene(veinSceneName);
     }
 
     private bool IsInsideZone(Collider zone, Vector3 point)
     {
+        if (zone == null)
+            return false;
+
         Vector3 closestPoint = zone.ClosestPoint(point);
 
         return (closestPoint - point).sqrMagnitude < 0.0001f;
