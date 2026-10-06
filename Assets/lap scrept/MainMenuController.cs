@@ -2,41 +2,37 @@ using UnityEngine;
 
 public class MainMenuController : MonoBehaviour
 {
-    public GameObject mainMenuCanvas;
-    public GameObject settingsPanel;
+    [Header("Start UI")]
+    public GameObject startCanvas;
 
+    [Header("Pause / Resume")]
     public GameObject pauseButton;
     public GameObject resumeButton;
 
+    [Header("Voice Guide")]
+    public LabVoiceGuide labVoiceGuide;
+
     public void StartGame()
     {
-        mainMenuCanvas.SetActive(false);
+        // إخفاء شاشة البداية
+        if (startCanvas != null)
+            startCanvas.SetActive(false);
 
-        pauseButton.SetActive(true);
-        resumeButton.SetActive(false);
-    }
+        // إظهار زر Pause
+        if (pauseButton != null)
+            pauseButton.SetActive(true);
 
-    public void OpenSettings()
-    {
-        settingsPanel.SetActive(true);
-    }
+        // إخفاء زر Resume بالبداية
+        if (resumeButton != null)
+            resumeButton.SetActive(false);
 
-    public void CloseSettings()
-    {
-        settingsPanel.SetActive(false);
-    }
+        // تشغيل الصوت الخاص ببداية المختبر
+        if (labVoiceGuide != null)
+            labVoiceGuide.StartGuide();
 
-    public void SetVolume(float value)
-    {
-        AudioListener.volume = value;
-    }
+        // التأكد أن اللعبة غير متوقفة
+        Time.timeScale = 1f;
 
-    public void ExitGame()
-    {
-#if UNITY_EDITOR
-        UnityEditor.EditorApplication.isPlaying = false;
-#else
-        Application.Quit();
-#endif
+        Debug.Log("GAME STARTED");
     }
 }
