@@ -131,7 +131,6 @@ GameObject:
   - component: {fileID: 4630380}
   - component: {fileID: 4630379}
   - component: {fileID: 4630378}
-  - component: {fileID: 4630381}
   m_Layer: 5
   m_Name: StartButton
   m_TagString: Untagged
@@ -252,25 +251,6 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 4630376}
   m_CullTransparentMesh: 1
---- !u!114 &4630381
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 4630376}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 7951c64acb0fa62458bf30a60089fe2d, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Unity.XR.Interaction.Toolkit::UnityEngine.XR.Interaction.Toolkit.UI.TrackedDeviceGraphicRaycaster
-  m_IgnoreReversedGraphics: 0
-  m_CheckFor2DOcclusion: 0
-  m_CheckFor3DOcclusion: 0
-  m_BlockingMask:
-    serializedVersion: 2
-    m_Bits: 4294967295
-  m_RaycastTriggerInteraction: 1
 --- !u!4 &22969078 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 1680501587, guid: f6336ac4ac8b4d34bc5072418cdc62a0, type: 3}
@@ -2816,6 +2796,7 @@ GameObject:
   - component: {fileID: 937014632}
   - component: {fileID: 937014631}
   - component: {fileID: 937014635}
+  - component: {fileID: 937014636}
   m_Layer: 5
   m_Name: StartCanvas
   m_TagString: Untagged
@@ -2923,6 +2904,25 @@ MonoBehaviour:
   pauseButton: {fileID: 1560377289}
   resumeButton: {fileID: 2088486997}
   labVoiceGuide: {fileID: 509466231}
+--- !u!114 &937014636
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 937014630}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7951c64acb0fa62458bf30a60089fe2d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Unity.XR.Interaction.Toolkit::UnityEngine.XR.Interaction.Toolkit.UI.TrackedDeviceGraphicRaycaster
+  m_IgnoreReversedGraphics: 0
+  m_CheckFor2DOcclusion: 0
+  m_CheckFor3DOcclusion: 0
+  m_BlockingMask:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  m_RaycastTriggerInteraction: 1
 --- !u!4 &970795888 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 973735981258951545, guid: 6607c5694f0628547b5419a3416c0368, type: 3}
