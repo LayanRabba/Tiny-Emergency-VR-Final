@@ -6,6 +6,9 @@ public class ClotHealth : MonoBehaviour
     [Header("Win UI")]
     public GameObject winCanvas;
 
+    [Header("360 End Screen")]
+    public EndGame360Controller endGame360;
+
     [Header("Particles")]
     public ParticleSystem clotDebris;
 
@@ -29,10 +32,12 @@ public class ClotHealth : MonoBehaviour
             winCanvas.SetActive(false);
 
         if (clotDebris != null)
+        {
             clotDebris.Stop(
                 true,
                 ParticleSystemStopBehavior.StopEmittingAndClear
             );
+        }
 
         if (clotBreakAudio != null)
         {
@@ -145,6 +150,11 @@ public class ClotHealth : MonoBehaviour
         // استنى قبل شاشة الفوز
         yield return new WaitForSeconds(winScreenDelay);
 
+        // بدّل الخلفية إلى صورة الفوز 360
+        if (endGame360 != null)
+            endGame360.ShowWin360();
+
+        // أظهر شاشة الفوز
         if (winCanvas != null)
             winCanvas.SetActive(true);
 

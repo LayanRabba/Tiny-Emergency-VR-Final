@@ -12,7 +12,6 @@ public class VehicleHealth : MonoBehaviour
     [Header("Obstacle Damage")]
     [SerializeField] private float redBloodCellDamage = 5f;
     [SerializeField] private float plateletDamage = 2f;
-    
 
     [Header("White Cell Bonus")]
     [SerializeField] private int whiteCellScore = 10;
@@ -31,7 +30,10 @@ public class VehicleHealth : MonoBehaviour
     [Tooltip("Protection time when the game starts.")]
     [SerializeField] private float startProtectionDuration = 2f;
 
-    [Header("Lose UI")]
+    [Header("360 End Screen")]
+    public EndGame360Controller endGame360;
+
+    [Header("Legacy Lose UI (leave empty when using 360)")]
     public GameObject loseCanvas;
 
     private float nextDamageTime;
@@ -69,14 +71,12 @@ public class VehicleHealth : MonoBehaviour
 
         string objectTag = other.gameObject.tag;
 
-        // White blood cells give a bonus and have their own sound.
         if (objectTag == "WhiteBloodCell")
         {
             CollectWhiteBloodCell(other.gameObject);
             return;
         }
 
-        // Prevent repeated damage and sounds during the protection period.
         if (Time.time < nextDamageTime)
             return;
 
@@ -96,7 +96,6 @@ public class VehicleHealth : MonoBehaviour
                 plateletSound
             );
         }
-        
     }
 
     private void HitObstacle(
@@ -118,7 +117,7 @@ public class VehicleHealth : MonoBehaviour
 
         Debug.Log(
             $"White blood cell collected. " +
-            $"Score: {currentScore}, " +
+            $"Score: {currentScore}. " +
             $"Energy: {currentEnergy}/{maxEnergy}"
         );
 
@@ -149,7 +148,10 @@ public class VehicleHealth : MonoBehaviour
         if (gameOver || amount <= 0f)
             return;
 
-        currentEnergy = Mathf.Min(maxEnergy, currentEnergy + amount);
+        currentEnergy = Mathf.Min(
+            maxEnergy,
+            currentEnergy + amount
+        );
     }
 
     private void EndGame()
@@ -159,7 +161,9 @@ public class VehicleHealth : MonoBehaviour
 
         gameOver = true;
 
-        if (loseCanvas != null)
+        if (endGame360 != null)
+            endGame360.ShowLose360();
+        else if (loseCanvas != null)
             loseCanvas.SetActive(true);
 
         VehiclePathController movement =
@@ -168,6 +172,8 @@ public class VehicleHealth : MonoBehaviour
         if (movement != null)
             movement.enabled = false;
 
-        Debug.Log($"Game Over. Final Score: {currentScore}");
+        Debug.Log(
+            $"Game Over. Final Score: {currentScore}"
+        );
     }
 }

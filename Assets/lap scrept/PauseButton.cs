@@ -8,6 +8,7 @@ public class PauseMenuController : MonoBehaviour
     public void PauseGame()
     {
         Time.timeScale = 0f;
+        AudioListener.pause = true;
 
         pauseButton.SetActive(false);
         resumeButton.SetActive(true);
@@ -16,6 +17,7 @@ public class PauseMenuController : MonoBehaviour
     public void ResumeGame()
     {
         Time.timeScale = 1f;
+        AudioListener.pause = false;
 
         pauseButton.SetActive(true);
         resumeButton.SetActive(false);
