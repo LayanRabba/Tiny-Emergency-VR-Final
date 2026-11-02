@@ -1,3 +1,4 @@
+
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.InputSystem;
@@ -17,11 +18,36 @@ public class VehiclePathController : MonoBehaviour
     [Tooltip("Maximum distance from the center of the vessel")]
     public float maxOffsetRadius = 1.2f;
 
+    [Header("XR Controller Input Actions")]
+    [Tooltip("Left controller joystick - Vector2")]
+    public InputActionReference moveAction;
+
+    [Tooltip("Right controller trigger - Button")]
+    public InputActionReference forwardAction;
+
     private readonly List<Transform> waypoints = new();
 
     private int currentWaypointIndex = 1;
     private Vector3 pathCenter;
     private Vector2 playerOffset;
+
+    void OnEnable()
+    {
+        if (moveAction != null && moveAction.action != null)
+            moveAction.action.Enable();
+
+        if (forwardAction != null && forwardAction.action != null)
+            forwardAction.action.Enable();
+    }
+
+    void OnDisable()
+    {
+        if (moveAction != null && moveAction.action != null)
+            moveAction.action.Disable();
+
+        if (forwardAction != null && forwardAction.action != null)
+            forwardAction.action.Disable();
+    }
 
     void Start()
     {
@@ -37,11 +63,9 @@ public class VehiclePathController : MonoBehaviour
             return;
         }
 
-        // Place the vehicle at the first waypoint.
         pathCenter = waypoints[0].position;
         transform.position = pathCenter;
 
-        // Point the vehicle toward the second waypoint.
         Vector3 firstDirection =
             waypoints[1].position - waypoints[0].position;
 
@@ -56,13 +80,8 @@ public class VehiclePathController : MonoBehaviour
 
     void Update()
     {
-        Keyboard keyboard = Keyboard.current;
-
-        if (keyboard == null)
-            return;
-
-        MoveForward(keyboard);
-        MoveInsideVessel(keyboard);
+        MoveForward();
+        MoveInsideVessel();
         ApplyFinalPosition();
     }
 
@@ -76,19 +95,20 @@ public class VehiclePathController : MonoBehaviour
             return;
         }
 
-        // Load the waypoint children in their Hierarchy order.
         foreach (Transform child in waypointsRoot)
         {
             waypoints.Add(child);
         }
     }
 
-    void MoveForward(Keyboard keyboard)
+    void MoveForward()
     {
-        // Forward: W or Up Arrow.
+        if (forwardAction == null ||
+            forwardAction.action == null)
+            return;
+
         bool forwardPressed =
-            keyboard.wKey.isPressed ||
-            keyboard.upArrowKey.isPressed;
+            forwardAction.action.IsPressed();
 
         if (!forwardPressed)
             return;
@@ -122,7 +142,6 @@ public class VehiclePathController : MonoBehaviour
             );
         }
 
-        // Continue to the following waypoint.
         if (Vector3.Distance(
                 pathCenter,
                 targetPosition
@@ -133,58 +152,25 @@ public class VehiclePathController : MonoBehaviour
         }
     }
 
-    void MoveInsideVessel(Keyboard keyboard)
+    void MoveInsideVessel()
     {
-        float horizontalInput = 0f;
-        float verticalInput = 0f;
+        if (moveAction == null ||
+            moveAction.action == null)
+            return;
 
-        // Left: A or Left Arrow.
-        if (
-            keyboard.aKey.isPressed ||
-            keyboard.leftArrowKey.isPressed)
-        {
-            horizontalInput = -1f;
-        }
-        // Right: D or Right Arrow.
-        else if (
-            keyboard.dKey.isPressed ||
-            keyboard.rightArrowKey.isPressed)
-        {
-            horizontalInput = 1f;
-        }
-
-        // Up: E, Space, or Page Up.
-        if (
-            keyboard.eKey.isPressed ||
-            keyboard.spaceKey.isPressed ||
-            keyboard.pageUpKey.isPressed)
-        {
-            verticalInput = 1f;
-        }
-        // Down: Q, S, Down Arrow, or Page Down.
-        else if (
-            keyboard.qKey.isPressed ||
-            keyboard.sKey.isPressed ||
-            keyboard.downArrowKey.isPressed ||
-            keyboard.pageDownKey.isPressed)
-        {
-            verticalInput = -1f;
-        }
+        Vector2 joystickInput =
+            moveAction.action.ReadValue<Vector2>();
 
         playerOffset.x +=
-            horizontalInput *
+            joystickInput.x *
             sideSpeed *
             Time.deltaTime;
 
         playerOffset.y +=
-            verticalInput *
+            joystickInput.y *
             verticalSpeed *
             Time.deltaTime;
 
-        /*
-         * Keep the vehicle inside a circular boundary
-         * around the center of the vessel.
-         */
         playerOffset = Vector2.ClampMagnitude(
             playerOffset,
             maxOffsetRadius

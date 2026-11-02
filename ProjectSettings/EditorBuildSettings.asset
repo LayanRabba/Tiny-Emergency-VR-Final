@@ -15,6 +15,7 @@ EditorBuildSettings:
     path: Assets/AnatomicPack/Scenes/InsideVesselsScene.unity
     guid: 06446acc6f3a22148ac68981c61243ba
   m_configObjects:
+    Unity.XR.Oculus.Settings: {fileID: 11400000, guid: 12e9672ede139854a878e52a09c6039a, type: 2}
     com.unity.input.settings.actions: {fileID: -944628639613478452, guid: 052faaac586de48259a63d0c4782560b, type: 3}
     com.unity.xr.management.loader_settings: {fileID: 11400000, guid: ed9eab9cad55c034eb559e9664b49ea4, type: 2}
     com.unity.xr.openxr.settings4: {fileID: 11400000, guid: b767937ff917a114ca1c7f8c854ab74d, type: 2}
